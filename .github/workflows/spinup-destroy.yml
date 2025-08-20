@@ -1,10 +1,6 @@
 name: Configure Azure environment
 
-on:
-  push:
-    branches:
-      - main
-      
+on:      
   pull_request:
     types: [labeled]
   workflow_dispatch:
@@ -31,24 +27,7 @@ jobs:
         run: |
           az group create --location "${{ env.AZURE_LOCATION }}" --name "${{ env.AZURE_RESOURCE_GROUP }}"
 
-      - name: Create Azure app service plan
-        run: |
-          az appservice plan create --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" --name "${{ env.AZURE_APP_PLAN }}" --is-linux --sku F1
-
-      - name: Create webapp resource
-        run: |
-          az webapp create --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" --plan "${{ env.AZURE_APP_PLAN }}" --name "${{ env.AZURE_WEBAPP_NAME }}" --deployment-container-image-name nginx
-
-      - name: Configure webapp to use GHCR
-        run: |
-          az webapp config container set \
-            --name "${{ env.AZURE_WEBAPP_NAME }}" \
-            --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
-            --docker-custom-image-name nginx \
-            --docker-registry-server-url https://${{ env.IMAGE_REGISTRY_URL }} \
-            --docker-registry-server-user ${{ github.actor }} \
-            --docker-registry-server-password ${{ secrets.CR_PAT }}
-
+     
   destroy-azure-resources:
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.labels.*.name, 'destroy environment')
